@@ -1,5 +1,5 @@
 # AI Productivity Tracker (SQL + ML + Psychology)
-  
+   
 Predict and analyze daily productivity using **behavioral data, SQL feature engineering, and machine learning**, integrating psychological principles such as **circadian rhythm**, **stress-performance dynamics**, and **habit efficiency**.
 
 This project demonstrates how modern data science can quantify human productivity in knowledge work, blending **psychology, data engineering, and predictive analytics**.
