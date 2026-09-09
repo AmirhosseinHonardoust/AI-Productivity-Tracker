@@ -283,7 +283,7 @@ outputs/charts/
 <div align="center">
 
 | Model | R² | MAE |
-|---|---:|---:|
+|---|---|---|
 | ElasticNet (alpha=0.06, l1_ratio=0.25), current | 0.318 | 2.17 |
 | ElasticNetCV (tuned alpha/l1_ratio) | 0.318 | 2.16 |
 | RandomForestRegressor (300 trees) | 0.282 | 2.24 |
@@ -358,7 +358,7 @@ Actual numbers from the bundled sample data:
 <div align="center">
 
 | Metric | Value (`outputs/metrics.json`) |
-|---|---:|
+|---|---|
 | R² | 0.318 |
 | MAE | 2.17 |
 
