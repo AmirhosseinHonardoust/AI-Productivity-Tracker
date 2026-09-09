@@ -17,9 +17,7 @@ SQL_PATH = Path(__file__).resolve().parents[1] / "src" / "queries.sql"
 
 
 def test_create_db_parse_args_defaults(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "sys.argv", ["create_db.py", "--train", "t.csv", "--candidates", "c.csv"]
-    )
+    monkeypatch.setattr("sys.argv", ["create_db.py", "--train", "t.csv", "--candidates", "c.csv"])
     args = create_db.parse_args()
     assert args.db == "productivity.db"
     assert args.log_level == "INFO"

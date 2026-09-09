@@ -31,21 +31,28 @@ ai-productivity-tracker/
 │  ├─ create_db.py
 │  ├─ queries.sql
 │  ├─ features.py
+│  ├─ generate_data.py
 │  ├─ train_regression.py
 │  ├─ score_new_days.py
 │  └─ utils.py
 ├─ tests/
 │  ├─ fixtures/
+│  ├─ conftest.py
+│  ├─ test_checksum.py
+│  ├─ test_cli.py
 │  ├─ test_create_db.py
+│  ├─ test_generate_data.py
+│  ├─ test_pipeline_smoke.py
 │  ├─ test_queries_sql.py
-│  ├─ test_utils.py
-│  └─ test_pipeline_smoke.py
+│  └─ test_utils.py
 ├─ outputs/
 │  ├─ metrics.json
 │  ├─ feature_importance.csv
 │  ├─ predictions_train.csv   (generated, gitignored)
 │  └─ charts/                 (generated, gitignored)
 ├─ .github/workflows/ci.yml
+├─ .gitattributes
+├─ .pre-commit-config.yaml
 ├─ pyproject.toml
 ├─ requirements.txt
 ├─ requirements-dev.txt
@@ -123,6 +130,20 @@ python src/score_new_days.py --db productivity.db --sql src/queries.sql --model 
 ```
 
 Outputs include metrics, predictions, and charts under `outputs/`.
+
+### Regenerating or resizing the sample data
+
+`data/events_train.csv` and `data/events_candidates.csv` are synthetic.
+`src/generate_data.py` can regenerate them (or produce a differently-sized
+sample) with the same schema and the same psychological drivers `queries.sql`
+uses, plus noise:
+
+```bash
+python src/generate_data.py --users 100 --days 54 --candidate-rows 350 --seed 42
+```
+
+This is a fresh synthetic sample matching the bundled data's shape and style,
+not a byte-for-byte reproduction of it.
 
 ---
 
@@ -225,13 +246,24 @@ trends, per-user baselines) rather than a different algorithm.
 
 ```bash
 pip install -r requirements-dev.txt
-ruff check src
-black --check src
+ruff check src tests
+black --check src tests
 mypy --ignore-missing-imports src/*.py
 pytest tests/ -v --cov=src --cov-report=term-missing --cov-fail-under=95
 ```
 
-CI (`.github/workflows/ci.yml`) runs the same checks, plus a full pipeline smoke run, on every push and PR, and fails the build if coverage drops below 95%.
+Optionally, install the [pre-commit](https://pre-commit.com/) hooks so `ruff`
+and `black` run automatically before each commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+CI (`.github/workflows/ci.yml`) runs the same checks — `ruff`/`black` cover
+both `src` and `tests` — across Python 3.10, 3.11, and 3.12, plus a full
+pipeline smoke run, on every push and PR, and fails the build if coverage
+drops below 95%.
 
 **Note on model files:** `outputs/model.joblib` is saved with `joblib.dump`, which uses Python's
 `pickle` format under the hood. `score_new_days.py` loads it with `joblib.load`, which — like any

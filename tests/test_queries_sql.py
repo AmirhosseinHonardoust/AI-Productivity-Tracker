@@ -12,8 +12,7 @@ SQL_PATH = Path(__file__).resolve().parents[1] / "src" / "queries.sql"
 @pytest.fixture
 def con():
     con = sqlite3.connect(":memory:")
-    con.execute(
-        """
+    con.execute("""
         CREATE TABLE events_train (
             user_id TEXT, date TEXT, sleep_hours REAL, chronotype TEXT,
             focus_start_hour INTEGER, deep_work_minutes INTEGER, meetings_minutes INTEGER,
@@ -22,20 +21,16 @@ def con():
             stress_level INTEGER, mood REAL, caffeine_mg INTEGER, hydration_glasses INTEGER,
             productivity_score REAL
         );
-        """
-    )
-    con.execute(
-        """
+        """)
+    con.execute("""
         INSERT INTO events_train VALUES
-        ('U1','2024-01-01', 6.0, 'morning', 8, 60, 90, 10, 3, 5.0, 12, 40, 8000, 4, 3.5, 120, 5, 6.5)
-        """
-    )
-    con.execute(
-        """
+        ('U1','2024-01-01', 6.0, 'morning', 8, 60, 90, 10, 3, 5.0, 12, 40, 8000, 4, 3.5,
+         120, 5, 6.5)
+        """)
+    con.execute("""
         INSERT INTO events_train VALUES
         ('U2','2024-01-01', 9.0, 'evening', 20, 30, 40, 5, 1, 10.0, 3, 5, 2000, 2, 4.0, 0, 2, 3.0)
-        """
-    )
+        """)
     con.executescript(SQL_PATH.read_text(encoding="utf-8"))
     yield con
     con.close()
