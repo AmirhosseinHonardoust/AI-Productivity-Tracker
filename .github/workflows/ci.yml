@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: ruff
+        run: ruff check src
+
+      - name: black --check
+        run: black --check src
+
+      - name: mypy
+        run: mypy --ignore-missing-imports src/*.py
+
+      - name: pytest
+        run: pytest tests/ -v
+
+      - name: Full pipeline smoke run
+        run: |
+          python src/create_db.py --train data/events_train.csv --candidates data/events_candidates.csv --db /tmp/ci.db
+          python src/train_regression.py --db /tmp/ci.db --sql src/queries.sql --outdir /tmp/ci-outputs
+          python src/score_new_days.py --db /tmp/ci.db --sql src/queries.sql --model /tmp/ci-outputs/model.joblib --outdir /tmp/ci-outputs
