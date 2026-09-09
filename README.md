@@ -1,6 +1,7 @@
 <div align="center">
 
 # AI Productivity Tracker
+<img width="1672" height="941" alt="AI-Productivity-Tracker" src="https://github.com/user-attachments/assets/b7442878-8286-45c5-9b2a-1071635a96b1" />
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![SQL](https://img.shields.io/badge/SQL-SQLite%20Feature%20Engineering-informational)
