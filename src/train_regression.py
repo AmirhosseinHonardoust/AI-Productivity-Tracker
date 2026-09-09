@@ -25,6 +25,7 @@ from utils import (
     plot_scatter_actual_vs_pred,
     save_csv,
     save_json,
+    write_sha256_sidecar,
 )
 
 LOGGER_NAME: Final[str] = "ai_productivity.train"
@@ -102,6 +103,7 @@ def run_training(db_path: Path, sql_path: Path, outdir: Path) -> None:
     )
 
     joblib.dump(pipe, outdir / "model.joblib")
+    write_sha256_sidecar(outdir / "model.joblib")
     logger.info("Artifacts saved to: %s", outdir.resolve())
 
 

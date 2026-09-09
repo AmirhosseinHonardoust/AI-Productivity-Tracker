@@ -192,6 +192,24 @@ Residual shape suggests stable performance and reliable psychological feature de
 
 These are the actual numbers produced by `train_regression.py` on the held-out test split (`random_state=42`, reproducible). R² of ~0.32 means the model explains roughly a third of the variance in `productivity_score` — a moderate result, not a strong one. Run the pipeline yourself (see "How to Run") to reproduce these values, or regenerate `outputs/metrics.json` at any time.
 
+**Why ElasticNet, and not something fancier?** We compared it against a cross-validated,
+hyperparameter-tuned ElasticNet, a `RandomForestRegressor`, and a `GradientBoostingRegressor` on
+the same train/test split. None beat the current model:
+
+| Model | R² | MAE |
+|---|---|---|
+| ElasticNet (alpha=0.06, l1_ratio=0.25) — current | 0.318 | 2.17 |
+| ElasticNetCV (tuned alpha/l1_ratio) | 0.318 | 2.16 |
+| RandomForestRegressor (300 trees) | 0.282 | 2.24 |
+| GradientBoostingRegressor | 0.286 | 2.23 |
+
+That similarity across a linear and two non-linear model families suggests ~0.32 is close to the
+ceiling for what these particular features predict, rather than a modeling choice that's leaving
+easy accuracy on the table. Given that, we kept ElasticNet: it ties for best, and its coefficients
+are directly interpretable (see `outputs/feature_importance.csv`), which the tree ensembles don't
+offer as cleanly. Improving on this further would mean better features (e.g. multi-day rolling
+trends, per-user baselines) rather than a different algorithm.
+
 ---
 
 ## Technologies Used
@@ -210,11 +228,19 @@ pip install -r requirements-dev.txt
 ruff check src
 black --check src
 mypy --ignore-missing-imports src/*.py
-pytest tests/ -v
+pytest tests/ -v --cov=src --cov-report=term-missing --cov-fail-under=95
 ```
+
+CI (`.github/workflows/ci.yml`) runs the same checks, plus a full pipeline smoke run, on every push and PR, and fails the build if coverage drops below 95%.
 
 **Note on model files:** `outputs/model.joblib` is saved with `joblib.dump`, which uses Python's
 `pickle` format under the hood. `score_new_days.py` loads it with `joblib.load`, which — like any
 `pickle`-based loader — will execute arbitrary code if pointed at an untrusted file. Only load
 `model.joblib` files you trained yourself or that came from a source you trust; don't load one
 downloaded from an unknown source.
+
+As a lightweight safeguard, `train_regression.py` now writes a `model.joblib.sha256` checksum
+sidecar next to the model, and `score_new_days.py` checks the model against it before loading. This
+catches accidental corruption or a swapped file — it's not a substitute for only running models
+from sources you trust, since a malicious actor could regenerate a matching checksum for a
+malicious file just as easily as a legitimate one.
