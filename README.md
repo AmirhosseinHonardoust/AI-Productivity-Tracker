@@ -385,10 +385,11 @@ Actual numbers from the bundled sample data:
 <summary>Additional residuals chart</summary>
 
 <div align="center">
-
-<img width="420" alt="Residuals distribution" src="https://github.com/user-attachments/assets/01e682a9-fd91-4833-bc94-0f9365e3a40c" />
-
-The residuals histogram is bell-shaped and centered near zero, indicating no systematic over- or under-prediction. Small tails suggest a handful of outlier days the linear model doesn't capture well.
+        
+| Residuals Chart |
+|---|
+| <img width="420" alt="Residuals distribution" src="https://github.com/user-attachments/assets/01e682a9-fd91-4833-bc94-0f9365e3a40c" /> |
+| The residuals histogram is bell-shaped and centered near zero, indicating no systematic over- or under-prediction. Small tails suggest a handful of outlier days the linear model doesn't capture well. |
 
 </div>
 
