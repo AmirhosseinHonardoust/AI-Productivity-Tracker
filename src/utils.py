@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Iterable, Union
-
 import logging
+from collections.abc import Iterable, Mapping
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ def save_csv(df: pd.DataFrame, path: PathLike, *, index: bool = False) -> Path:
     return out
 
 
-def save_json(obj: dict, path: PathLike) -> Path:
+def save_json(obj: Mapping[str, object], path: PathLike) -> Path:
     """Save a JSON-serializable object with indentation."""
     import json
 

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Tooling caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Local runtime artifacts
+*.db
+productivity.db
+
+# Generated model artifacts (regenerate via src/train_regression.py / score_new_days.py)
+# Small text summaries (metrics.json, feature_importance.csv) are kept tracked for easy review.
+outputs/model.joblib
+outputs/predictions_train.csv
+outputs/scored_candidates.csv
+outputs/charts/
+
+# OS
+.DS_Store

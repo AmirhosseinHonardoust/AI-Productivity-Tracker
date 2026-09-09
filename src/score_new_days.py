@@ -10,18 +10,10 @@ from typing import Final
 import joblib
 import pandas as pd
 
+from features import CATEGORICAL, NUMERIC
 from utils import ensure_outdir, save_csv
 
 LOGGER_NAME: Final[str] = "ai_productivity.score"
-
-NUMERIC: Final[list[str]] = [
-    "sleep_hours", "focus_start_hour", "deep_work_minutes", "meetings_minutes",
-    "late_meetings_minutes", "breaks_count", "avg_break_minutes",
-    "context_switches", "notifications", "steps", "stress_level", "mood",
-    "caffeine_mg", "hydration_glasses", "sleep_deficit", "circadian_alignment",
-    "yerkes_arousal", "break_quality", "meeting_load", "context_penalty", "health_score",
-]
-CATEGORICAL: Final[list[str]] = ["chronotype"]
 
 
 def _load_features(db_path: Path, sql_path: Path) -> pd.DataFrame:
@@ -47,11 +39,13 @@ def score(db_path: Path, sql_path: Path, model_path: Path, outdir: Path) -> None
     out = df[["user_id", "date"]].copy()
     out["predicted_productivity"] = preds
     save_csv(out, outdir / "scored_candidates.csv")
-    logger.info("Scored %d candidate days → %s", len(out), outdir.resolve())
+    logger.info("Scored %d candidate days -> %s", len(out), outdir.resolve())
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Score candidate days using trained productivity model.")
+    p = argparse.ArgumentParser(
+        description="Score candidate days using trained productivity model."
+    )
     p.add_argument("--db", default="productivity.db", help="SQLite DB path")
     p.add_argument("--sql", default="src/queries.sql", help="Path to queries.sql")
     p.add_argument("--model", default="outputs/model.joblib", help="Fitted model path")
