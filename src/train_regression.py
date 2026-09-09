@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+from features import CATEGORICAL, NUMERIC, TARGET
 from utils import (
     ensure_outdir,
     plot_bar,
@@ -27,16 +28,6 @@ from utils import (
 )
 
 LOGGER_NAME: Final[str] = "ai_productivity.train"
-
-NUMERIC: Final[list[str]] = [
-    "sleep_hours", "focus_start_hour", "deep_work_minutes", "meetings_minutes",
-    "late_meetings_minutes", "breaks_count", "avg_break_minutes",
-    "context_switches", "notifications", "steps", "stress_level", "mood",
-    "caffeine_mg", "hydration_glasses", "sleep_deficit", "circadian_alignment",
-    "yerkes_arousal", "break_quality", "meeting_load", "context_penalty", "health_score",
-]
-CATEGORICAL: Final[list[str]] = ["chronotype"]
-TARGET: Final[str] = "productivity_score"
 
 
 def _load_features(db_path: Path, sql_path: Path) -> pd.DataFrame:
@@ -58,9 +49,7 @@ def run_training(db_path: Path, sql_path: Path, outdir: Path) -> None:
     X = df[NUMERIC + CATEGORICAL].copy()
     y = df[TARGET].astype(float)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, random_state=42
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
     pre = ColumnTransformer(
         transformers=[
@@ -74,7 +63,10 @@ def run_training(db_path: Path, sql_path: Path, outdir: Path) -> None:
 
     pipe.fit(X_train, y_train)
     y_pred = pipe.predict(X_test)
-    metrics = {"r2": float(r2_score(y_test, y_pred)), "mae": float(mean_absolute_error(y_test, y_pred))}
+    metrics = {
+        "r2": float(r2_score(y_test, y_pred)),
+        "mae": float(mean_absolute_error(y_test, y_pred)),
+    }
     save_json(metrics, outdir / "metrics.json")
     logger.info("Metrics: %s", metrics)
 
@@ -86,20 +78,28 @@ def run_training(db_path: Path, sql_path: Path, outdir: Path) -> None:
     save_csv(preds, outdir / "predictions_train.csv")
 
     plot_scatter_actual_vs_pred(
-        y_true=y, y_pred=y_all, out_path=charts / "actual_vs_predicted.png",
+        y_true=y,
+        y_pred=y_all,
+        out_path=charts / "actual_vs_predicted.png",
         title="Actual vs Predicted Productivity",
     )
     plot_hist(y - y_all, charts / "residuals_hist.png", title="Residuals (Actual − Predicted)")
 
     # Coefficients (std. scale + one-hot cats)
     coefs = pipe.named_steps["model"].coef_
-    cat_names = list(pipe.named_steps["pre"].named_transformers_["cat"].get_feature_names_out(CATEGORICAL))
+    cat_transformer = pipe.named_steps["pre"].named_transformers_["cat"]
+    cat_names = list(cat_transformer.get_feature_names_out(CATEGORICAL))
     feature_names = NUMERIC + cat_names
     importance = pd.DataFrame({"feature": feature_names, "importance": coefs})
-    importance = importance.reindex(np.abs(importance["importance"]).sort_values(ascending=False).index).reset_index(drop=True)
+    order = np.abs(importance["importance"]).sort_values(ascending=False).index
+    importance = importance.reindex(order).reset_index(drop=True)
     save_csv(importance, outdir / "feature_importance.csv")
-    plot_bar(importance["feature"][:20], importance["importance"][:20], charts / "feature_importance.png",
-             title="Feature Importance (Std. Coefficients)")
+    plot_bar(
+        importance["feature"][:20],
+        importance["importance"][:20],
+        charts / "feature_importance.png",
+        title="Feature Importance (Std. Coefficients)",
+    )
 
     joblib.dump(pipe, outdir / "model.joblib")
     logger.info("Artifacts saved to: %s", outdir.resolve())

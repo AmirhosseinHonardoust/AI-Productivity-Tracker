@@ -1,0 +1,4 @@
+user_id,date,sleep_hours,chronotype,focus_start_hour,deep_work_minutes,meetings_minutes,late_meetings_minutes,breaks_count,avg_break_minutes,context_switches,notifications,steps,stress_level,mood,caffeine_mg,hydration_glasses
+U100,2024-02-01,7.5,evening,13,54,90,10,2,5.0,20,100,7000,3,3.5,100,5
+U101,2024-02-01,8.0,morning,7,90,60,0,3,10.0,10,40,10500,2,4.5,60,7
+U102,2024-02-01,6.5,evening,14,45,150,25,2,5.5,35,180,5000,4,2.8,160,3

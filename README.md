@@ -1,5 +1,7 @@
 # AI Productivity Tracker (SQL + ML + Psychology)
-      
+
+[![CI](https://github.com/AmirhosseinHonardoust/AI-Productivity-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/AmirhosseinHonardoust/AI-Productivity-Tracker/actions/workflows/ci.yml)
+
 Predict and analyze daily productivity using **behavioral data, SQL feature engineering, and machine learning**, integrating psychological principles such as **circadian rhythm**, **stress-performance dynamics**, and **habit efficiency**.
 
 This project demonstrates how modern data science can quantify human productivity in knowledge work, blending **psychology, data engineering, and predictive analytics**.
@@ -28,17 +30,25 @@ ai-productivity-tracker/
 ├─ src/
 │  ├─ create_db.py
 │  ├─ queries.sql
+│  ├─ features.py
 │  ├─ train_regression.py
 │  ├─ score_new_days.py
 │  └─ utils.py
+├─ tests/
+│  ├─ fixtures/
+│  ├─ test_create_db.py
+│  ├─ test_queries_sql.py
+│  ├─ test_utils.py
+│  └─ test_pipeline_smoke.py
 ├─ outputs/
 │  ├─ metrics.json
 │  ├─ feature_importance.csv
-│  ├─ predictions_train.csv
-│  └─ charts/
-│     ├─ actual_vs_predicted.png
-│     ├─ residuals_hist.png
-│     └─ feature_importance.png
+│  ├─ predictions_train.csv   (generated, gitignored)
+│  └─ charts/                 (generated, gitignored)
+├─ .github/workflows/ci.yml
+├─ pyproject.toml
+├─ requirements.txt
+├─ requirements-dev.txt
 └─ README.md
 ```
 
@@ -60,7 +70,7 @@ ai-productivity-tracker/
 | `notifications` | Distractions from notifications |
 | `steps`, `hydration_glasses`, `caffeine_mg` | Physical activity and health proxies |
 | `stress_level`, `mood` | Psychological self-assessments |
-| `productivity_score` | Target variable (0–100 scale) |
+| `productivity_score` | Target variable (continuous; ~0–17 in the bundled sample data) |
 
 ---
 
@@ -175,12 +185,12 @@ Residual shape suggests stable performance and reliable psychological feature de
 
 ## Metrics Summary
 
-| Metric | Description | Example Value |
+| Metric | Description | Value (bundled sample data, `outputs/metrics.json`) |
 |--------|--------------|----------------|
-| `R²` | Proportion of explained variance | ~0.83 |
-| `MAE` | Mean absolute error (0–100 scale) | ~3.5 |
+| `R²` | Proportion of explained variance | 0.318 |
+| `MAE` | Mean absolute error | 2.17 |
 
-The model explains most of the variance in daily productivity with **minimal error**, a strong result for behavioral prediction.
+These are the actual numbers produced by `train_regression.py` on the held-out test split (`random_state=42`, reproducible). R² of ~0.32 means the model explains roughly a third of the variance in `productivity_score` — a moderate result, not a strong one. Run the pipeline yourself (see "How to Run") to reproduce these values, or regenerate `outputs/metrics.json` at any time.
 
 ---
 
@@ -190,3 +200,21 @@ The model explains most of the variance in daily productivity with **minimal err
 - **Python (pandas, scikit-learn, matplotlib)**  analysis, modeling, visualization  
 - **ElasticNet Regression**  interpretable linear model with regularization  
 - **Joblib**  efficient model serialization  
+
+---
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt
+ruff check src
+black --check src
+mypy --ignore-missing-imports src/*.py
+pytest tests/ -v
+```
+
+**Note on model files:** `outputs/model.joblib` is saved with `joblib.dump`, which uses Python's
+`pickle` format under the hood. `score_new_days.py` loads it with `joblib.load`, which — like any
+`pickle`-based loader — will execute arbitrary code if pointed at an untrusted file. Only load
+`model.joblib` files you trained yourself or that came from a source you trust; don't load one
+downloaded from an unknown source.
