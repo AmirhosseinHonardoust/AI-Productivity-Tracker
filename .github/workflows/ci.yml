@@ -29,8 +29,8 @@ jobs:
       - name: mypy
         run: mypy --ignore-missing-imports src/*.py
 
-      - name: pytest
-        run: pytest tests/ -v
+      - name: pytest (with coverage gate)
+        run: pytest tests/ -v --cov=src --cov-report=term-missing --cov-fail-under=95
 
       - name: Full pipeline smoke run
         run: |

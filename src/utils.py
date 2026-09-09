@@ -29,6 +29,43 @@ def save_csv(df: pd.DataFrame, path: PathLike, *, index: bool = False) -> Path:
     return out
 
 
+def write_sha256_sidecar(path: PathLike) -> Path:
+    """Write a `<path>.sha256` file containing the hex digest of `path`.
+
+    Lets `score_new_days.py` do a lightweight integrity check on the model
+    file before unpickling it, without changing the serialization format
+    itself (sklearn Pipelines don't serialize cleanly to non-pickle formats).
+    """
+    import hashlib
+
+    target = Path(path)
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    sidecar = target.with_suffix(target.suffix + ".sha256")
+    sidecar.write_text(digest + "\n", encoding="utf-8")
+    logger.info("Saved checksum: %s", sidecar)
+    return sidecar
+
+
+def verify_sha256_sidecar(path: PathLike) -> bool | None:
+    """Check `path` against its `.sha256` sidecar, if one exists.
+
+    Returns True/False if a sidecar was found and checked, or None if there
+    was no sidecar to check against (e.g. an older or hand-copied model
+    file). Never raises: this is an advisory check, not a hard gate, since a
+    missing sidecar shouldn't block someone from scoring with a model they
+    trust.
+    """
+    import hashlib
+
+    target = Path(path)
+    sidecar = target.with_suffix(target.suffix + ".sha256")
+    if not sidecar.exists():
+        return None
+    expected = sidecar.read_text(encoding="utf-8").strip()
+    actual = hashlib.sha256(target.read_bytes()).hexdigest()
+    return actual == expected
+
+
 def save_json(obj: Mapping[str, object], path: PathLike) -> Path:
     """Save a JSON-serializable object with indentation."""
     import json
