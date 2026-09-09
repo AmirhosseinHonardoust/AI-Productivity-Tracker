@@ -51,8 +51,12 @@ ai-productivity-tracker/
 │  ├─ predictions_train.csv   (generated, gitignored)
 │  └─ charts/                 (generated, gitignored)
 ├─ .github/workflows/ci.yml
+├─ .editorconfig
 ├─ .gitattributes
 ├─ .pre-commit-config.yaml
+├─ CONTRIBUTING.md
+├─ SECURITY.md
+├─ Makefile
 ├─ pyproject.toml
 ├─ requirements.txt
 ├─ requirements-dev.txt
@@ -252,6 +256,9 @@ mypy --ignore-missing-imports src/*.py
 pytest tests/ -v --cov=src --cov-report=term-missing --cov-fail-under=95
 ```
 
+Or run the whole gate with `make check` (see the `Makefile` for individual
+`format`/`lint`/`typecheck`/`test`/`pipeline` targets).
+
 Optionally, install the [pre-commit](https://pre-commit.com/) hooks so `ruff`
 and `black` run automatically before each commit:
 
@@ -263,16 +270,14 @@ pre-commit install
 CI (`.github/workflows/ci.yml`) runs the same checks — `ruff`/`black` cover
 both `src` and `tests` — across Python 3.10, 3.11, and 3.12, plus a full
 pipeline smoke run, on every push and PR, and fails the build if coverage
-drops below 95%.
+drops below 95% (current coverage: 100%).
 
-**Note on model files:** `outputs/model.joblib` is saved with `joblib.dump`, which uses Python's
-`pickle` format under the hood. `score_new_days.py` loads it with `joblib.load`, which — like any
-`pickle`-based loader — will execute arbitrary code if pointed at an untrusted file. Only load
-`model.joblib` files you trained yourself or that came from a source you trust; don't load one
-downloaded from an unknown source.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution conventions and
+[SECURITY.md](SECURITY.md) for the model-file trust policy.
 
-As a lightweight safeguard, `train_regression.py` now writes a `model.joblib.sha256` checksum
-sidecar next to the model, and `score_new_days.py` checks the model against it before loading. This
-catches accidental corruption or a swapped file — it's not a substitute for only running models
-from sources you trust, since a malicious actor could regenerate a matching checksum for a
-malicious file just as easily as a legitimate one.
+**Note on model files:** see [SECURITY.md](SECURITY.md) for the full policy —
+in short, `outputs/model.joblib` uses `pickle` under the hood via `joblib`,
+so only load model files you trust. `train_regression.py` writes a
+`.sha256` checksum sidecar and `score_new_days.py` checks it before loading,
+as a lightweight (not sufficient on its own) safeguard against corruption or
+tampering.

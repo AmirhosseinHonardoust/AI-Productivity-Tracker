@@ -83,3 +83,22 @@ def test_score_new_days_warns_on_tampered_model(tmp_path, caplog) -> None:
 
     # restore, otherwise unrelated -- not strictly needed since tmp_path is per-test
     (outdir / "model.joblib.sha256").write_text(original_sidecar)
+
+
+def test_score_new_days_info_logs_when_sidecar_missing(tmp_path, caplog) -> None:
+    db_path = tmp_path / "cli.db"
+    create_db.load_to_db(
+        FIXTURES / "events_train_small.csv",
+        FIXTURES / "events_candidates_small.csv",
+        db_path,
+    )
+    outdir = tmp_path / "out"
+    train_regression.run_training(db_path, SQL_PATH, outdir)
+
+    model_path = outdir / "model.joblib"
+    (outdir / "model.joblib.sha256").unlink()
+
+    with caplog.at_level("INFO"):
+        score_new_days.score(db_path, SQL_PATH, model_path, outdir)
+    assert "No .sha256 sidecar found" in caplog.text
+    assert (outdir / "scored_candidates.csv").exists()
